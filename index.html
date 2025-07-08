@@ -151,40 +151,54 @@
       <input id="chat-input" type="text" placeholder="Write your question..." onkeypress="if(event.key==='Enter'){submitChat()}">
     </div>
   </div>
+<script>
+const API_URL = "https://innovation-scout-co.netlify.app/.netlify/functions/innovationScout";
 
-  <script>
-    const API_URL = "https://innovation-scout-co.netlify.app/.netlify/functions/innovationScout";
+function toggleChat() {
+  const panel = document.getElementById("chat-panel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
 
-    function toggleChat() {
-      const panel = document.getElementById("chat-panel");
-      panel.style.display = panel.style.display === "none" ? "block" : "none";
-    }
+async function submitChat() {
+  const input = document.getElementById("chat-input");
+  const responseBox = document.getElementById("chat-response");
+  const userMessage = input.value.trim();
+  if (!userMessage) return;
 
-    async function submitChat() {
-      const input = document.getElementById("chat-input");
-      const responseBox = document.getElementById("chat-response");
-      const userMessage = input.value.trim();
-      if (!userMessage) return;
+  const lang = detectLanguage(userMessage); // ⬅️ Language detection
 
-      responseBox.innerHTML = "<em>Thinking...</em>";
-      input.disabled = true;
+  // Append user message
+  responseBox.innerHTML += `<div><strong>You:</strong> ${userMessage}</div>`;
+  responseBox.innerHTML += `<div id="loading"><em><img src="https://i.imgur.com/llF5iyg.gif" style="height:18px;vertical-align:middle;" alt="loading"> Thinking...</em></div>`;
+  responseBox.scrollTop = responseBox.scrollHeight;
 
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: userMessage })
-        });
+  input.disabled = true;
 
-        const data = await res.json();
-        responseBox.innerHTML = `<strong>You:</strong> ${userMessage}<br><br><strong>Scout:</strong> ${data.reply}`;
-      } catch (err) {
-        responseBox.innerHTML = `<span style="color:red;">Error: ${err.message}</span>`;
-      }
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: userMessage, language: lang })
+    });
 
-      input.value = "";
-      input.disabled = false;
-    }
-  </script>
+    const data = await res.json();
+    document.getElementById("loading").remove();
+    responseBox.innerHTML += `<div><strong>Scout:</strong> ${data.reply}</div>`;
+  } catch (err) {
+    document.getElementById("loading").remove();
+    responseBox.innerHTML += `<div style="color:red;">Error: ${err.message}</div>`;
+  }
+
+  input.value = "";
+  input.disabled = false;
+  responseBox.scrollTop = responseBox.scrollHeight;
+}
+
+function detectLanguage(text) {
+  const esPattern = /[¿¡áéíóúñ]/i;
+  const hasSpanish = esPattern.test(text) || /(?:que|los|para|una|cómo|dónde|cuál|necesidades|puntos|dolor)/i.test(text);
+  return hasSpanish ? "es" : "en";
+}
+</script>
 </body>
 </html>
