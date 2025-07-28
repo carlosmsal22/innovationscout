@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Innovation Scout</title>
+  <script defer data-domain="carlosmsal22.github.io/innovationscout" src="https://plausible.io/js/script.js"></script>
+  <style>
+    <body>
+  <button class="toggle-btn" onclick="toggleMode()">Light/Dark</button>
+  <button class="lang-btn" onclick="toggleLang()">Español / English</button>
+  <h1 id="main-title">Innovation Scout - Prompt Menu</h1>
+  <div class="search-box">
+    <input type="text" id="searchInput" onkeyup="filterPrompts()" placeholder="Search prompts...">
+  </div>
+  <div class="filters" id="categoryFilters"></div>
+  <div class="grid" id="promptGrid"></div>
+
+  <!-- Chat Launcher -->
+  <div id="chat-launcher">
+    <button onclick="toggleChat()">💬 Ask Innovation Scout</button>
+  </div>
+
+  <!-- Chat Panel -->
+  <div id="chat-panel">
+    <div style="padding: 10px; border-bottom: 1px solid #eee;">
+      <strong>Innovation Scout</strong>
+      <button onclick="toggleChat()" style="float:right;">✖</button>
+    </div>
+    <div id="chat-response" style="padding: 10px; height: 200px; overflow-y: auto; font-size: 14px;"></div>
+    <div style="padding: 10px; border-top: 1px solid #eee;">
+      <input id="chat-input" type="text" placeholder="Write your question..." 
+             onkeypress="if(event.key==='Enter'){submitChat()}">
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://innovation-scout-co.netlify.app/.netlify/functions/innovationScout";
+    let chatHistory = "";
+
+    function toggleChat() {
+      const panel = document.getElementById("chat-panel");
+      panel.style.display = panel.style.display === "block" ? "none" : "block";
+    }
+
+    async function submitChat() {
+      const input = document.getElementById("chat-input");
+      const responseBox = document.getElementById("chat-response");
+      const userMessage = input.value.trim();
+      if (!userMessage) return;
+
+      responseBox.innerHTML += `<div><strong>You:</strong> ${userMessage}</div>`;
+      responseBox.innerHTML += `<div id="loading"><em>⏳ Thinking...</em></div>`;
+      responseBox.scrollTop = responseBox.scrollHeight;
+      input.disabled = true;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: userMessage })
+        });
+        const data = await res.json();
+        document.getElementById("loading").remove();
+        responseBox.innerHTML += `<div><strong>Scout:</strong> ${data.reply}</div>`;
+      } catch (err) {
+        document.getElementById("loading").remove();
+        responseBox.innerHTML += `<div style="color:red;">Error: ${err.message}</div>`;
+      }
+
+      input.value = "";
+      input.disabled = false;
+      responseBox.scrollTop = responseBox.scrollHeight;
+    }
+  </script>
+
+  <style>
+    #chat-launcher {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    #chat-launcher button {
+      background: #00d4ff;
+      color: #0a2540;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 15px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    #chat-panel {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 320px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+      font-family: sans-serif;
+      color: #000;
+    }
+    #chat-response div {
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+  </style>
+</body>
+  <button class="toggle-btn" onclick="toggleMode()">Modo Claro/Oscuro</button>
+  <button class="lang-btn" onclick="toggleLang()">Español / English</button>
+  <h1 id="main-title">Innovation Scout - Menú de Prompts</h1>
+  <div class="search-box">
+    <input type="text" id="searchInput" onkeyup="filterPrompts()" placeholder="Buscar prompts...">
+  </div>
+  <div class="filters" id="categoryFilters"></div>
+  <div class="grid" id="promptGrid"></div>
+
+  <!-- New Chat Panel -->
+  <div id="chat-launcher">
+    <button onclick="toggleChat()">Ask Innovation Scout</button>
+  </div>
+  <div id="chat-panel">
+    <div style="padding: 10px; border-bottom: 1px solid #eee;">
+      <strong>Innovation Scout</strong>
+      <button onclick="toggleChat()">&#10005;</button>
+    </div>
+    <div id="chat-response" style="padding: 10px; height: 160px; overflow-y: auto; font-size: 14px;"></div>
+    <div style="padding: 10px; border-top: 1px solid #eee;">
+      <input id="chat-input" type="text" placeholder="Write your question..." onkeypress="if(event.key==='Enter'){submitChat()}">
+    </div>
+  </div>
+<script>
+const API_URL = "https://innovation-scout-co.netlify.app/.netlify/functions/innovationScout";
+
+function toggleChat() {
+  const panel = document.getElementById("chat-panel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
+
+async function submitChat() {
+  const input = document.getElementById("chat-input");
+  const responseBox = document.getElementById("chat-response");
+  const userMessage = input.value.trim();
+  if (!userMessage) return;
+
+  const lang = detectLanguage(userMessage); // ⬅️ Language detection
+
+  // Append user message
+  responseBox.innerHTML += `<div><strong>You:</strong> ${userMessage}</div>`;
+  responseBox.innerHTML += `<div id="loading"><em><img src="https://i.imgur.com/llF5iyg.gif" style="height:18px;vertical-align:middle;" alt="loading"> Thinking...</em></div>`;
+  responseBox.scrollTop = responseBox.scrollHeight;
+
+  input.disabled = true;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: userMessage, language: lang })
+    });
+
+    const data = await res.json();
+    document.getElementById("loading").remove();
+    responseBox.innerHTML += `<div><strong>Scout:</strong> ${data.reply}</div>`;
+  } catch (err) {
+    document.getElementById("loading").remove();
+    responseBox.innerHTML += `<div style="color:red;">Error: ${err.message}</div>`;
+  }
+
+  input.value = "";
+  input.disabled = false;
+  responseBox.scrollTop = responseBox.scrollHeight;
+}
+
+function detectLanguage(text) {
+  const esPattern = /[¿¡áéíóúñ]/i;
+  const hasSpanish = esPattern.test(text) || /(?:que|los|para|una|cómo|dónde|cuál|necesidades|puntos|dolor)/i.test(text);
+  return hasSpanish ? "es" : "en";
+}
+</script>
+</body>
+</html>
